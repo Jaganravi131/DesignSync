@@ -67,4 +67,12 @@ const templateSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Add indexes for better query performance
+templateSchema.index({ isActive: 1, category: 1, isPremium: 1 });
+templateSchema.index({ usageCount: -1 });
+templateSchema.index({ rating: -1 });
+templateSchema.index({ createdAt: -1 });
+templateSchema.index({ category: 1, subcategory: 1 });
+templateSchema.index({ name: 'text', description: 'text', tags: 'text' });
+
 export default mongoose.model('Template', templateSchema);
