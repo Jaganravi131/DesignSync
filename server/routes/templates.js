@@ -1,12 +1,23 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Template from '../models/Template.js';
 import { authenticateToken } from './auth.js';
 
 const router = express.Router();
 
+// Helper function to check database connection
+const isDatabaseConnected = () => {
+  return mongoose.connection.readyState === 1;
+};
+
 // Get all templates
 router.get('/', async (req, res) => {
   try {
+    // Check database connection first
+    if (!isDatabaseConnected()) {
+      return res.json([]);
+    }
+
     const { category, subcategory, search, premium } = req.query;
     let query = { isActive: true };
 
@@ -36,6 +47,11 @@ router.get('/', async (req, res) => {
 // Get single template
 router.get('/:id', async (req, res) => {
   try {
+    // Check database connection first
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({ error: 'Database not connected, feature unavailable' });
+    }
+
     const template = await Template.findById(req.params.id)
       .populate('createdBy', 'name email avatar');
 
@@ -57,6 +73,11 @@ router.get('/:id', async (req, res) => {
 // Create template (admin only)
 router.post('/', authenticateToken, async (req, res) => {
   try {
+    // Check database connection first
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({ error: 'Database not connected, feature unavailable' });
+    }
+
     const {
       name,
       description,
@@ -95,6 +116,11 @@ router.post('/', authenticateToken, async (req, res) => {
 // Get template categories
 router.get('/categories/list', async (req, res) => {
   try {
+    // Check database connection first
+    if (!isDatabaseConnected()) {
+      return res.json([]);
+    }
+
     const categories = await Template.aggregate([
       { $match: { isActive: true } },
       {
